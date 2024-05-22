@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Serilog;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using WebHook.DTOs;
 using WebHook.Enums;
@@ -151,29 +152,40 @@ namespace WebHook
 
         private async Task<ResponseMessage> SendPostQuery(string json)
         {
-            var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.prod1.qolio.ru/api/v1/integrations/0d620a73-6190-49fc-93e6-4bc86d9a29cf/text");
-            request.Headers.Add("Authorization", GetAuthToken());
-            var content = new StringContent(json, null, "application/json");
-            request.Content = content;
-            var response = await client.SendAsync(request);
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode != HttpStatusCode.OK && responseContent.Contains("Необходимо, чтобы был определен активный оператор"))
+            using (var client = new HttpClient())
             {
-                Log.Warning("Staff was not found. Trying to add a staff ....");
-                return new ResponseMessage { Code = HttpStatusCode.NotFound, Message = responseContent };
-            }
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.prod1.qolio.ru/api/v1/integrations/0d620a73-6190-49fc-93e6-4bc86d9a29cf/text");
 
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                Log.Error(responseContent);
-                return new ResponseMessage { Code = HttpStatusCode.BadRequest, Message = responseContent };
-            }
-                
+                string authToken = GetAuthToken();
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    request.Headers.Add("Authorization", authToken);
+                }
+                else
+                {
+                    Log.Error("Authorization token is null or empty.");
+                    throw new InvalidOperationException("Authorization token cannot be null or empty.");
+                }
 
-            return new ResponseMessage { Code = HttpStatusCode.OK, Message = responseContent };
+                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.SendAsync(request);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode != HttpStatusCode.OK && responseContent.Contains("Необходимо, чтобы был определен активный оператор"))
+                {
+                    Log.Warning("Staff was not found. Trying to add a staff ....");
+                    return new ResponseMessage { Code = HttpStatusCode.NotFound, Message = responseContent };
+                }
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    Log.Error(responseContent);
+                    return new ResponseMessage { Code = HttpStatusCode.BadRequest, Message = responseContent };
+                }
+
+                return new ResponseMessage { Code = HttpStatusCode.OK, Message = responseContent };
+            }
         }
 
         private async Task IntegrationAddNewStaff(Agents agent)
