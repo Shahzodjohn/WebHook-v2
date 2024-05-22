@@ -41,6 +41,9 @@ app.UseStaticFiles();
 
 app.MapPost("/webhook", async context =>
 {
+    var connectionString = Environment.GetEnvironmentVariable("CSTR");
+    var connection = Environment.GetEnvironmentVariable("AUTH_TOKEN");
+
     Log.Information("New conversation...");
 
     var requestBody = await context.Request.ReadFromJsonAsync<JsonElement>();
