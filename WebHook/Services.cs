@@ -156,7 +156,7 @@ namespace WebHook
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://api.prod1.qolio.ru/api/v1/integrations/0d620a73-6190-49fc-93e6-4bc86d9a29cf/text");
 
-                string authToken = GetAuthToken();
+                string authToken = await GetAuthToken();
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     request.Headers.Add("Authorization", authToken);
@@ -275,7 +275,7 @@ namespace WebHook
             return new admin_dataDto { Login = splt[1], Password = splt[3] };
         }
 
-        private string? GetAuthToken() => Environment.GetEnvironmentVariable("AUTH_TOKEN");
+        private async Task<string>? GetAuthToken() => Environment.GetEnvironmentVariable("AUTH_TOKEN");
 
 
         private string? GetEventName(JsonElement element)

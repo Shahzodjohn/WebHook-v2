@@ -13,6 +13,12 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
+DotNetEnv.Env.Load();
+var connectionString = Environment.GetEnvironmentVariable("CSTR");
+
+
+Log.Information(connectionString);
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,8 +28,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-DotNetEnv.Env.Load();
-var connectionString = Environment.GetEnvironmentVariable("CSTR");
+
 
 
 builder.Services.AddDbContext<AppDbContext>(
