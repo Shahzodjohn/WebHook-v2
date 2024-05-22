@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using Serilog;
 using System.Net;
 using System.Text;
@@ -156,7 +157,7 @@ namespace WebHook
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://api.prod1.qolio.ru/api/v1/integrations/0d620a73-6190-49fc-93e6-4bc86d9a29cf/text");
 
-                string authToken = await GetAuthToken();
+                string authToken = Auth_token.qolio_auth_token; //await GetAuthToken();
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     request.Headers.Add("Authorization", authToken);
@@ -269,10 +270,12 @@ namespace WebHook
 
         private async Task<admin_dataDto> GetAdminData()
         {
-            var env = Environment.GetEnvironmentVariable("Sis_Admin");
-            var splt = env.Split(new char[] { '=', ';' });
+            //var env = Environment.GetEnvironmentVariable("Sis_Admin");
+            //var env = Environment.GetEnvironmentVariable("Sis_Admin");
+            //var splt = env.Split(new char[] { '=', ';' });
 
-            return new admin_dataDto { Login = splt[1], Password = splt[3] };
+            return new admin_dataDto { Login = Qolio_Credetials.Login, Password = Qolio_Credetials.Password };
+            //return new admin_dataDto { Login = splt[1], Password = splt[3] };
         }
 
         private async Task<string>? GetAuthToken() => Environment.GetEnvironmentVariable("AUTH_TOKEN");
