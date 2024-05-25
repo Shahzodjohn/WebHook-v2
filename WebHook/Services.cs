@@ -26,15 +26,13 @@ namespace WebHook
                 if (chatFinished.chat == null)
                     return;
 
-                //var topic = chatFinished.topic is null ? "Тема не выбрана" : chatFinished.topic.title;
-
-                await SendToQolio(chatFinished, "");
+                await SendToQolio(chatFinished);
             }
 
             Log.Information(convertedBody);
         }
 
-        public async Task SendToQolio(chat_finished chat_Finished, string topic)
+        public async Task SendToQolio(chat_finished chat_Finished)
         {
             var clientTempIdentity = chat_Finished.visitor.name ?? chat_Finished.visitor.phone;
 
@@ -44,8 +42,6 @@ namespace WebHook
 
             var conversation = await RefactoringConversation(messages);
             var commPart = new List<CommunicationPart>();
-
-            //string author = String.Empty;
 
 
             foreach (var item in conversation)
@@ -141,23 +137,13 @@ namespace WebHook
             return lines;
         }
 
-        //private string GetCommunicator(string userName)
-        //{
-        //    return userName switch
-        //    {
-        //        "visitor" => "Клиент",
-        //        "bot" => "Гулчехра Бот",
-        //        _ => userName,
-        //    };
-        //}
-
         private async Task<ResponseMessage> SendPostQuery(string json)
         {
             using (var client = new HttpClient())
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://api.prod1.qolio.ru/api/v1/integrations/0d620a73-6190-49fc-93e6-4bc86d9a29cf/text");
 
-                string authToken = Auth_token.qolio_auth_token; //await GetAuthToken();
+                string authToken = Auth_token.qolio_auth_token;
                 if (!string.IsNullOrEmpty(authToken))
                 {
                     request.Headers.Add("Authorization", authToken);
@@ -268,18 +254,10 @@ namespace WebHook
             Log.Information(await response.Content.ReadAsStringAsync());
         }
 
-        private async Task<admin_dataDto> GetAdminData()
-        {
-            //var env = Environment.GetEnvironmentVariable("Sis_Admin");
-            //var env = Environment.GetEnvironmentVariable("Sis_Admin");
-            //var splt = env.Split(new char[] { '=', ';' });
+        private async Task<admin_dataDto> GetAdminData() => new admin_dataDto { Login = Qolio_Credetials.Login, Password = Qolio_Credetials.Password };
 
-            return new admin_dataDto { Login = Qolio_Credetials.Login, Password = Qolio_Credetials.Password };
-            //return new admin_dataDto { Login = splt[1], Password = splt[3] };
-        }
 
-        private async Task<string>? GetAuthToken() => Environment.GetEnvironmentVariable("AUTH_TOKEN");
-
+        //private async Task<string>? GetAuthToken() => Environment.GetEnvironmentVariable("AUTH_TOKEN");
 
         private string? GetEventName(JsonElement element)
         {
@@ -293,9 +271,6 @@ namespace WebHook
                 return null;
             }
         }
-
-        private async Task<DateTime> ToDateTime(int timeStamp)
-                => new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(timeStamp).ToLocalTime();
     }
 }
 
